@@ -1,7 +1,7 @@
 ﻿/*
-    Copyright 2020-2021 Katy Coe - http://www.djkaty.com - https://github.com/djkaty
+   Copyright 2020-2021 Katy Coe - http://www.djkaty.com - https://github.com/djkaty
 
-    All rights reserved.
+   All rights reserved.
 */
 
 using System;
@@ -96,12 +96,15 @@ namespace Il2CppInspector.PluginAPI.V100
         /// During plugin execution, the current value of the option
         /// </summary>
         private T _value;
-        object IPluginOption.Value { get => Value; set => Value = (T) value; }
-        public T Value {
+        object IPluginOption.Value { get => Value; set => Value = (T)value; }
+        public T Value
+        {
             get => _value;
-            set {
+            set
+            {
                 // Disabled options can be set to invalid values
-                if (!If()) {
+                if (!If())
+                {
                     _value = value;
                     return;
                 }
@@ -159,7 +162,8 @@ namespace Il2CppInspector.PluginAPI.V100
     /// </summary>
     public class PluginOptionText : PluginOption<string>
     {
-        protected sealed override void InternalValidate(string text) {
+        protected sealed override void InternalValidate(string text)
+        {
             // Don't allow required text to be empty
             if (Required && string.IsNullOrWhiteSpace(text))
                 throw new ArgumentException("Text cannot be empty");
@@ -173,7 +177,8 @@ namespace Il2CppInspector.PluginAPI.V100
     /// </summary>
     public class PluginOptionFilePath : PluginOption<string>
     {
-        protected sealed override void InternalValidate(string path) {
+        protected sealed override void InternalValidate(string path)
+        {
             // Don't allow required path name to be empty
             if (Required && string.IsNullOrWhiteSpace(path))
                 throw new ArgumentException("Path name is required");
@@ -186,13 +191,15 @@ namespace Il2CppInspector.PluginAPI.V100
             var fullPath = Path.GetFullPath(path);
             var fileName = Path.GetFileName(fullPath);
 
-            if (IsFolder) {
+            if (IsFolder)
+            {
                 if (MustExist && !Directory.Exists(fullPath))
                     throw new ArgumentException($"Directory {fileName} does not exist");
                 if (MustNotExist && Directory.Exists(fullPath))
                     throw new ArgumentException($"Directory {fileName} already exists");
             }
-            else {
+            else
+            {
                 if (MustExist && !File.Exists(fullPath))
                     throw new ArgumentException($"File {fileName} does not exist");
                 if (MustNotExist && File.Exists(fullPath))
@@ -200,7 +207,8 @@ namespace Il2CppInspector.PluginAPI.V100
             }
 
             // Check selected file has a valid extension
-            if (!IsFolder && !AllowedExtensions.ContainsKey("*")) {
+            if (!IsFolder && !AllowedExtensions.ContainsKey("*"))
+            {
                 var ext = Path.GetExtension(fullPath).ToLower();
                 if (ext.StartsWith('.'))
                     ext = ext.Substring(1);
@@ -229,7 +237,8 @@ namespace Il2CppInspector.PluginAPI.V100
         /// List of file extensions to allow with descriptions for GUI, when selecting a file
         /// Specify * to allow all extensions
         /// </summary>
-        public Dictionary<string, string> AllowedExtensions = new Dictionary<string, string> {
+        public Dictionary<string, string> AllowedExtensions = new Dictionary<string, string>
+        {
             ["*"] = "All files"
         };
 
@@ -261,12 +270,13 @@ namespace Il2CppInspector.PluginAPI.V100
         /// <summary>
         /// The value of the number
         /// </summary>
-        object IPluginOptionNumber.Value { get => Value; set => Value = (T) value; }
+        object IPluginOptionNumber.Value { get => Value; set => Value = (T)value; }
 
         protected sealed override void InternalValidate(T value) { }
 
-        public override void SetFromString(string value) {
-            Value = (T) Convert.ChangeType(Convert.ToInt64(value, Style == PluginOptionNumberStyle.Hex? 16 : 10), typeof(T));
+        public override void SetFromString(string value)
+        {
+            Value = (T)Convert.ChangeType(Convert.ToInt64(value, Style == PluginOptionNumberStyle.Hex ? 16 : 10), typeof(T));
         }
     }
 
@@ -288,17 +298,19 @@ namespace Il2CppInspector.PluginAPI.V100
         /// </summary>
         public PluginOptionChoiceStyle Style { get; set; }
 
-        protected sealed override void InternalValidate(T value) {
+        protected sealed override void InternalValidate(T value)
+        {
             // Allow Choices to be null so that setting Value first on init doesn't throw an exception
             if (!Choices?.Keys.Contains(value) ?? false)
                 throw new ArgumentException("Specified choice is not one of the available choices");
         }
 
-        public override void SetFromString(string value) {
+        public override void SetFromString(string value)
+        {
             if (typeof(T).IsEnum)
-                Value = (T) Enum.Parse(typeof(T), value);
+                Value = (T)Enum.Parse(typeof(T), value);
             else
-                Value = (T) Convert.ChangeType(value, typeof(T));
+                Value = (T)Convert.ChangeType(value, typeof(T));
         }
     }
 }

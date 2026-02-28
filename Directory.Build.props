@@ -6,8 +6,8 @@
 	  <Version>2026.1</Version>
 	  <AssemblyVersion>$(Version).0.0</AssemblyVersion>
 	  <FileVersion>$(AssemblyVersion)</FileVersion>
-	  <Authors>Katy Coe, LukeFZ</Authors>
-	  <Company>Noisy Cow Studios, LukeFZ</Company>
+	  <Authors>Katy Coe, LukeFZ, Jadis0x</Authors>
+	  <Company>Noisy Cow Studios, LukeFZ, Jadis0x</Company>
 	  <Copyright>(c) 2023-2026 LukeFZ - https://github.com/LukeFZ, original (c) 2017-2021 Katy Coe - www.djkaty.com - www.github.com/djkaty</Copyright>
   </PropertyGroup>
 </Project>

@@ -1,14 +1,9 @@
 ﻿/*
-    Copyright 2020-2021 Katy Coe - http://www.djkaty.com - https://github.com/djkaty
+   Copyright 2020-2021 Katy Coe - http://www.djkaty.com - https://github.com/djkaty
 
-    All rights reserved.
+   All rights reserved.
 */
 
-using Il2CppInspector.PluginAPI;
-// This is the ONLY line to update when the API version changes
-using Il2CppInspector.PluginAPI.V100;
-using McMaster.NETCore.Plugins;
-using Spectre.Console;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -17,6 +12,11 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using McMaster.NETCore.Plugins;
+using Il2CppInspector.PluginAPI;
+
+// This is the ONLY line to update when the API version changes
+using Il2CppInspector.PluginAPI.V100;
 
 namespace Il2CppInspector
 {
@@ -40,7 +40,8 @@ namespace Il2CppInspector
         public bool Available { get; set; }
 
         // Programmatic access to options
-        public object this[string s] {
+        public object this[string s]
+        {
             get => Plugin.Options.Single(o => o.Name == s).Value;
             set => Plugin.Options.Single(o => o.Name == s).Value = value;
         }
@@ -53,7 +54,8 @@ namespace Il2CppInspector
             => Plugin.Options.ToDictionary(o => o.Name, o => o.Value);
 
         // Set options to values with optional validation behaviour
-        public void SetOptions(Dictionary<string, object> options, OptionBehaviour behaviour = OptionBehaviour.None) {
+        public void SetOptions(Dictionary<string, object> options, OptionBehaviour behaviour = OptionBehaviour.None)
+        {
             foreach (var option in options)
                 // Throw an exception on the first invalid option
                 if (behaviour == OptionBehaviour.None)
@@ -61,13 +63,17 @@ namespace Il2CppInspector
 
                 // Don't set invalid options but don't throw an exception either
                 else if (behaviour == OptionBehaviour.IgnoreInvalid)
-                    try {
+                    try
+                    {
                         this[option.Key] = option.Value;
-                    } catch { }
+                    }
+                    catch { }
 
                 // Force set options with no validation
-                else if (behaviour == OptionBehaviour.NoValidation) {
-                    if (Plugin.Options.FirstOrDefault(o => o.Name == option.Key) is IPluginOption target) {
+                else if (behaviour == OptionBehaviour.NoValidation)
+                {
+                    if (Plugin.Options.FirstOrDefault(o => o.Name == option.Key) is IPluginOption target)
+                    {
                         var validationCondition = target.If;
                         target.If = () => false;
                         target.Value = option.Value;
@@ -113,18 +119,19 @@ namespace Il2CppInspector
         // Global enable/disable flag for entire plugin system
         // If set to false, all plugins will be unloaded
         // Disable this if you want to create standalone apps using the API but without plugins
-        private static bool _enabled = false;
-
-        public static bool Enabled {
+        private static bool _enabled = true;
+        public static bool Enabled
+        {
             get => _enabled;
-            set {
+            set
+            {
                 _enabled = value;
                 Reload();
             }
         }
 
         // All of the detected plugins, including invalid/incompatible/non-loaded plugins
-        public ObservableCollection<ManagedPlugin> ManagedPlugins { get; } = [];
+        public ObservableCollection<ManagedPlugin> ManagedPlugins { get; } = new ObservableCollection<ManagedPlugin>();
 
         // All of the plugins that are loaded and available for use
         public static IEnumerable<IPlugin> AvailablePlugins => AsInstance.ManagedPlugins.Where(p => p.Available).Select(p => p.Plugin);
@@ -137,7 +144,7 @@ namespace Il2CppInspector
             => AsInstance.ManagedPlugins.Where(p => p.Available).ToDictionary(p => p.Plugin.Id, p => p);
 
         // The relative path from the executable that we'll search for plugins
-        private static string pluginFolder = Path.GetFullPath(Path.GetDirectoryName(Environment.ProcessPath) + Path.DirectorySeparatorChar + "plugins");
+        private static string pluginFolder = Path.GetFullPath(Path.GetDirectoryName(Process.GetCurrentProcess().MainModule.FileName) + Path.DirectorySeparatorChar + "plugins");
 
         // A placeholder plugin to be used when the real plugin cannot be loaded for some reason
         private class InvalidPlugin : IPlugin
@@ -157,9 +164,12 @@ namespace Il2CppInspector
 
         // Singleton pattern
         private static PluginManager _singleton;
-        public static PluginManager AsInstance {
-            get {
-                if (_singleton == null) {
+        public static PluginManager AsInstance
+        {
+            get
+            {
+                if (_singleton == null)
+                {
                     _singleton = new PluginManager();
                     Reload();
                 }
@@ -183,7 +193,8 @@ namespace Il2CppInspector
         public static PluginManager EnsureInit() => AsInstance;
 
         // Find and load all available plugins from disk
-        public static void Reload(string pluginPath = null, bool reset = true, bool coreOnly = false) {
+        public static void Reload(string pluginPath = null, bool reset = true, bool coreOnly = false)
+        {
             // Update plugin folder if requested, otherwise use current setting
             pluginFolder = pluginPath ?? pluginFolder;
 
@@ -195,22 +206,20 @@ namespace Il2CppInspector
                 return;
 
             // Don't allow the user to start the application if there's no plugins folder
-            // REDUX: We allow people to not use plugins since they might be incompatible with the installation
-            if (!Directory.Exists(pluginFolder)) {
-                /*throw new DirectoryNotFoundException(
+            if (!Directory.Exists(pluginFolder))
+            {
+                throw new DirectoryNotFoundException(
                     "Plugins folder not found. Please ensure you have installed the latest set of plugins before starting. "
                   + "The plugins folder should be placed in the same directory as Il2CppInspector. "
                   + "Use get-plugins.ps1 or get-plugins.sh to update your plugins. For more information, see the Il2CppInspector README.md file.");
-                */
-
-                return;
             }
 
             // Get every DLL
             // NOTE: Every plugin should be in its own folder together with its dependencies
             var dlls = Directory.GetFiles(pluginFolder, "*.dll", SearchOption.AllDirectories);
 
-            foreach (var dll in dlls) {
+            foreach (var dll in dlls)
+            {
                 // All plugin interfaces we allow for this version of Il2CppInspector
                 // Add new versions to allow backwards compatibility
                 var loader = PluginLoader.CreateFromAssemblyFile(dll,
@@ -220,27 +229,31 @@ namespace Il2CppInspector
                    });
 
                 // Construct disabled plugin as a placeholder if loading fails (mainly for the GUI)
-                var disabledPlugin = new ManagedPlugin {
+                var disabledPlugin = new ManagedPlugin
+                {
                     Plugin = null,
                     Available = false,
                     Enabled = false
                 };
 
                 // Load plugin
-                try {
+                try
+                {
                     var asm = loader.LoadDefaultAssembly();
 
                     // Determine plugin version and instantiate as appropriate
-                    foreach (var type in asm.GetTypes()) {
+                    foreach (var type in asm.GetTypes())
+                    {
                         // Current version
-                        if (typeof(IPlugin).IsAssignableFrom(type) && !type.IsAbstract) {
+                        if (typeof(IPlugin).IsAssignableFrom(type) && !type.IsAbstract)
+                        {
 
                             var isCorePlugin = typeof(ICorePlugin).IsAssignableFrom(type);
 
                             if (coreOnly && !isCorePlugin)
                                 continue;
 
-                            var plugin = (IPlugin) Activator.CreateInstance(type);
+                            var plugin = (IPlugin)Activator.CreateInstance(type);
 
                             // Don't allow multiple identical plugins to load
                             if (AsInstance.ManagedPlugins.Any(p => p.Plugin.Id == plugin.Id))
@@ -262,22 +275,27 @@ namespace Il2CppInspector
                 }
 
                 // Problem finding all the types required to load the plugin
-                catch (ReflectionTypeLoadException ex) {
+                catch (ReflectionTypeLoadException ex)
+                {
                     var name = Path.GetFileName(dll);
 
                     AsInstance.ManagedPlugins.Add(disabledPlugin);
 
                     // Determine error
-                    switch (ex.LoaderExceptions[0]) {
+                    switch (ex.LoaderExceptions[0])
+                    {
 
                         // Type could not be found
                         case TypeLoadException failedType:
-                            if (failedType.TypeName.StartsWith("Il2CppInspector.PluginAPI.")) {
+                            if (failedType.TypeName.StartsWith("Il2CppInspector.PluginAPI."))
+                            {
 
                                 // Requires newer plugin API version
                                 disabledPlugin.Plugin = new InvalidPlugin { Name = name, Description = "This plugin requires a newer version of Il2CppInspector" };
                                 Console.Error.WriteLine($"Error loading plugin {disabledPlugin.Plugin.Name}: {disabledPlugin.Plugin.Description}");
-                            } else {
+                            }
+                            else
+                            {
 
                                 // Missing dependencies or some inherited interfaces not implemented
                                 disabledPlugin.Plugin = new InvalidPlugin { Name = name, Description = "This plugin has dependencies that could not be found or may require a newer version of Il2CppInspector. Check that all required DLLs are present in the plugins folder." };
@@ -298,7 +316,8 @@ namespace Il2CppInspector
                 }
 
                 // Some field not implemented in class
-                catch (TargetInvocationException ex) when (ex.InnerException is MissingFieldException fEx) {
+                catch (TargetInvocationException ex) when (ex.InnerException is MissingFieldException fEx)
+                {
                     var name = Path.GetFileName(dll);
 
                     disabledPlugin.Plugin = new InvalidPlugin { Name = name, Description = fEx.Message };
@@ -309,7 +328,8 @@ namespace Il2CppInspector
                 catch (BadImageFormatException) { }
 
                 // Some other load error (probably generated by the plugin itself)
-                catch (Exception ex) {
+                catch (Exception ex)
+                {
                     var name = Path.GetFileName(dll);
 
                     throw new InvalidOperationException($"Fatal error loading plugin {name}: {ex.GetType()} - {ex.Message}", ex);
@@ -318,22 +338,26 @@ namespace Il2CppInspector
         }
 
         // Reset a plugin to its default "factory" state
-        public static IPlugin Reset(IPlugin plugin) {
+        public static IPlugin Reset(IPlugin plugin)
+        {
             var managedPlugin = AsInstance.ManagedPlugins.Single(p => p.Plugin == plugin);
 
-            var replacement = (IPlugin) Activator.CreateInstance(plugin.GetType());
+            var replacement = (IPlugin)Activator.CreateInstance(plugin.GetType());
             managedPlugin.Plugin = replacement;
             return replacement;
         }
 
         // Commit options change for the specified plugin
-        public static PluginOptionsChangedEventInfo OptionsChanged(IPlugin plugin) {
+        public static PluginOptionsChangedEventInfo OptionsChanged(IPlugin plugin)
+        {
             var eventInfo = new PluginOptionsChangedEventInfo();
 
-            try {
+            try
+            {
                 plugin.OptionsChanged(eventInfo);
             }
-            catch (Exception ex) {
+            catch (Exception ex)
+            {
                 eventInfo.Error = new PluginErrorEventArgs { Plugin = plugin, Exception = ex, Operation = "options update" };
                 ErrorHandler?.Invoke(AsInstance, eventInfo);
             }
@@ -342,17 +366,20 @@ namespace Il2CppInspector
         }
 
         // Validate all options for enabled plugins
-        public static PluginOptionsChangedEventInfo ValidateAllOptions() {
+        public static PluginOptionsChangedEventInfo ValidateAllOptions()
+        {
             // Enforce this by causing each option's setter to run
             var eventInfo = new PluginOptionsChangedEventInfo();
 
             foreach (var plugin in EnabledPlugins)
                 if (plugin.Options != null)
                     foreach (var option in plugin.Options)
-                        try {
+                        try
+                        {
                             option.Value = option.Value;
                         }
-                        catch (Exception ex) {
+                        catch (Exception ex)
+                        {
                             eventInfo.Error = new PluginOptionErrorEventArgs { Plugin = plugin, Exception = ex, Option = option, Operation = "options update" };
                             ErrorHandler?.Invoke(AsInstance, eventInfo);
                             break;
@@ -369,9 +396,11 @@ namespace Il2CppInspector
 
             foreach (var plugin in enabledPlugins)
                 if (plugin.Plugin is I p)
-                    try {
+                    try
+                    {
                         // Silently disallow recursion unless [Reentrant] is set on the method
-                        if (plugin.StackTrace.Contains(hookName)) {
+                        if (plugin.StackTrace.Contains(hookName))
+                        {
                             var allowRecursion = p.GetType().GetMethod(hookName).GetCustomAttribute(typeof(ReentrantAttribute)) != null;
                             if (!allowRecursion)
                                 continue;
@@ -384,7 +413,8 @@ namespace Il2CppInspector
                         if (eventInfo.FullyProcessed)
                             break;
                     }
-                    catch (Exception ex) {
+                    catch (Exception ex)
+                    {
                         // Disable failing plugin
                         plugin.Enabled = false;
 
@@ -400,7 +430,8 @@ namespace Il2CppInspector
         }
 
         // Process an incoming status update
-        internal static void StatusUpdate(IPlugin plugin, string text) {
+        internal static void StatusUpdate(IPlugin plugin, string text)
+        {
             StatusHandler?.Invoke(AsInstance, new PluginStatusEventArgs { Plugin = plugin, Text = text });
         }
     }

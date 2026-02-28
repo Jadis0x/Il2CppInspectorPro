@@ -1,7 +1,7 @@
 ﻿// Copyright 2020 Robert Xiao - https://robertxiao.ca/
 // Copyright (c) 2020-2021 Katy Coe - http://www.djkaty.com - https://github.com/djkaty
 // Copyright (c) 2023 LukeFZ https://github.com/LukeFZ
-// Copyright (c) 2024 Jadis0x https://github.com/LukeFZ
+// Copyright (c) 2024 Jadis0x https://github.com/Jadis0x
 // All rights reserved
 
 using Il2CppInspector.Cpp;

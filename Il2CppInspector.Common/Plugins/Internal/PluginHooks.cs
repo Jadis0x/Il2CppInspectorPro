@@ -1,7 +1,7 @@
 ﻿/*
-    Copyright 2020-2021 Katy Coe - http://www.djkaty.com - https://github.com/djkaty
+   Copyright 2020-2021 Katy Coe - http://www.djkaty.com - https://github.com/djkaty
 
-    All rights reserved.
+   All rights reserved.
 */
 
 using System.Collections.Generic;
@@ -25,9 +25,9 @@ namespace Il2CppInspector
 
         public static PluginPreProcessMetadataEventInfo PreProcessMetadata(BinaryObjectStream stream)
             => PluginManager.Try<ILoadPipeline, PluginPreProcessMetadataEventInfo>((p, e) => {
-                    stream.Position = 0;
-                    p.PreProcessMetadata(stream, e);
-                });
+                stream.Position = 0;
+                p.PreProcessMetadata(stream, e);
+            });
 
         public static PluginPostProcessMetadataEventInfo PostProcessMetadata(Metadata metadata)
             => PluginManager.Try<ILoadPipeline, PluginPostProcessMetadataEventInfo>((p, e) => p.PostProcessMetadata(metadata, e));

@@ -1,7 +1,7 @@
 ﻿/*
-    Copyright 2020-2021 Katy Coe - http://www.djkaty.com - https://github.com/djkaty
+   Copyright 2020-2021 Katy Coe - http://www.djkaty.com - https://github.com/djkaty
 
-    All rights reserved.
+   All rights reserved.
 */
 
 using Il2CppInspector.PluginAPI.V100;
@@ -23,7 +23,8 @@ namespace Il2CppInspector.PluginAPI
         /// </summary>
         /// <param name="plugin">The plugin to provide services to</param>
         /// <returns>A PluginServices object</returns>
-        public static PluginServices For(IPlugin plugin) {
+        public static PluginServices For(IPlugin plugin)
+        {
             return new PluginServices(plugin);
         }
 
